@@ -1,45 +1,57 @@
 #include "kaia_gba.h"
 
-// Definición de la función vid_vsync antes del main
-void vid_vsync() {
-    while(REG_VCOUNT < 160);
-    while(REG_VCOUNT >= 160);
-}
+// Definición del cuadrado
+#define CUADRADO_TAMANIO 10
+
+// Variables para la posición del cuadrado
+int posX = 100;
+int posY = 100;
 
 int main() {
-    // Configuración del modo de video
-    REG_DISPCNT = MODE_3 | BG2_ENABLE;
+    // Inicio: Limpia la pantalla completa a NEGRO una sola vez
+    for (int y = 0; y < 160; y++) {
+        for (int x = 0; x < 240; x++) {
+            plotPixel(x, y, 0); // 0 es el color negro
+        }
+    }
 
-    // Inicialización de variables para la lógica de movimiento
-    int x = 0;
-    int y = 0;
-
-    while(1) {
-        // Lógica de movimiento (por ahora, solo mover el cuadrado)
-        x++;
-        y++;
-
-        // Llamada a vid_vsync para sincronización vertical
-        vid_vsync();
-
-        // Dibujar el cuadrado en VRAM (por simplicidad, asumir que el cuadrado es de 10x10 píxeles)
-        // Nota: La implementación real dependerá de cómo se maneje la memoria de video (VRAM) en el proyecto
-        // Por ahora, se asume una función genérica para dibujar el cuadrado
-        // void drawSquare(int x, int y);
-        // drawSquare(x, y);
-
-        // Simulación de dibujado del cuadrado (reemplazar con la implementación real)
-        // Se asume que el cuadrado se dibuja en la capa de fondo 2 (BG2)
-        // y que se utiliza una paleta de colores simple
-        for(int i = 0; i < 10; i++) {
-            for(int j = 0; j < 10; j++) {
-                // Asignar un color al píxel (por ejemplo, blanco)
-                // La implementación real dependerá de cómo se acceda y se modifique la VRAM
-                // Se asume una función para asignar color a un píxel en la posición (x+i, y+j)
-                // void setPixelColor(int x, int y, int color);
-                // setPixelColor(x+i, y+j, 0xFFFFFF);
+    while (1) {
+        // Paso A (Borrar Rastro): Dibuja el cuadrado de color NEGRO en la posición actual
+        for (int y = 0; y < CUADRADO_TAMANIO; y++) {
+            for (int x = 0; x < CUADRADO_TAMANIO; x++) {
+                if (posX + x >= 0 && posX + x < 240 && posY + y >= 0 && posY + y < 160) {
+                    plotPixel(posX + x, posY + y, 0); // 0 es el color negro
+                }
             }
         }
+
+        // Paso B (Lógica): Lee los inputs y actualiza posX / posY
+        // Aquí debes agregar la lógica para leer los inputs y actualizar las variables posX y posY
+        // Por ejemplo, si se presiona la tecla derecha, aumentar posX
+        if (keysDown() & KEY_RIGHT) {
+            posX += 1;
+        }
+        if (keysDown() & KEY_LEFT) {
+            posX -= 1;
+        }
+        if (keysDown() & KEY_UP) {
+            posY -= 1;
+        }
+        if (keysDown() & KEY_DOWN) {
+            posY += 1;
+        }
+
+        // Paso C (Dibujar Nuevo): Dibuja el cuadrado de color AZUL en la nueva posición
+        for (int y = 0; y < CUADRADO_TAMANIO; y++) {
+            for (int x = 0; x < CUADRADO_TAMANIO; x++) {
+                if (posX + x >= 0 && posX + x < 240 && posY + y >= 0 && posY + y < 160) {
+                    plotPixel(posX + x, posY + y, 31); // 31 es el color azul
+                }
+            }
+        }
+
+        // Paso D (VSync): Llama a vid_vsync()
+        vid_vsync();
     }
 
     return 0;
