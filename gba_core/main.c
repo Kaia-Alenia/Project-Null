@@ -1,65 +1,87 @@
-```c
 #include "kaia_gba.h"
 
+// Definimos el tamaño de cada tile en el grid
 #define TILE_SIZE 16
 
-// Variables para el jugador
-int jugador_x = 0;
-int jugador_y = 0;
+// Estructura para almacenar el estado de las teclas
+typedef struct {
+    unsigned short keys_held;
+    unsigned short keys_pressed;
+} InputState;
 
-// Variable para detectar flancos de subida
-u16 old_keys;
-
+// Función para dibujar la grid en la pantalla
 void dibujarGrid() {
     for (int i = 0; i < 240; i += TILE_SIZE) {
-        // Dibujar líneas horizontales
+        // Dibujar línea horizontal
         for (int j = 0; j < 160; j++) {
-            plotPixel(j, i, 0x4210);
+            if (i == 0 || i == 240 - TILE_SIZE) {
+                // Borde superior e inferior
+                SetPixel(j, i, RGB(128, 128, 128));
+            } else {
+                // Líneas internas
+                if (j == 0 || j == 160 - TILE_SIZE) {
+                    // Borde izquierdo y derecho
+                    SetPixel(j, i, RGB(128, 128, 128));
+                }
+            }
         }
     }
     for (int i = 0; i < 160; i += TILE_SIZE) {
-        // Dibujar líneas verticales
+        // Dibujar línea vertical
         for (int j = 0; j < 240; j++) {
-            plotPixel(i, j, 0x4210);
+            if (i == 0 || i == 160 - TILE_SIZE) {
+                // Borde izquierdo y derecho
+                SetPixel(i, j, RGB(128, 128, 128));
+            } else {
+                // Líneas internas
+                if (j == 0 || j == 240 - TILE_SIZE) {
+                    // Borde superior e inferior
+                    SetPixel(i, j, RGB(128, 128, 128));
+                }
+            }
         }
     }
 }
 
 int main() {
-    while (1) {
-        // Limpiar la pantalla
-        fillScreen(0x0000);
+    // Inicializar el estado de las teclas
+    InputState input_state;
+    input_state.keys_held = 0;
+    input_state.keys_pressed = 0;
 
-        // Llamar a la función para dibujar el grid
+    // Inicializar las coordenadas iniciales como múltiplos de 16
+    int x = 0;
+    int y = 0;
+
+    while (1) {
+        // Leer el estado de las teclas
+        input_state.keys_pressed = ~input_state.keys_held & (KEY_A | KEY_B | KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN);
+        input_state.keys_held = (KEY_A | KEY_B | KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN);
+
+        // Dibujar la grid
         dibujarGrid();
 
-        // Dibujar al jugador
-        // ...
+        // Manejar el movimiento discreto
+        if (input_state.keys_pressed & KEY_LEFT) {
+            x -= TILE_SIZE;
+        }
+        if (input_state.keys_pressed & KEY_RIGHT) {
+            x += TILE_SIZE;
+        }
+        if (input_state.keys_pressed & KEY_UP) {
+            y -= TILE_SIZE;
+        }
+        if (input_state.keys_pressed & KEY_DOWN) {
+            y += TILE_SIZE;
+        }
 
-        // Obtener las teclas presionadas
-        old_keys = keys;
-        keys = keypad();
-
-        // Detección de "Key Down" para los botones de movimiento
-        if ((~old_keys & keys) & KEY_LEFT) {
-            // Mover al jugador hacia la izquierda
-            jugador_x -= TILE_SIZE;
-        }
-        if ((~old_keys & keys) & KEY_RIGHT) {
-            // Mover al jugador hacia la derecha
-            jugador_x += TILE_SIZE;
-        }
-        if ((~old_keys & keys) & KEY_UP) {
-            // Mover al jugador hacia arriba
-            jugador_y -= TILE_SIZE;
-        }
-        if ((~old_keys & keys) & KEY_DOWN) {
-            // Mover al jugador hacia abajo
-            jugador_y += TILE_SIZE;
-        }
+        // Asegurarse de que las coordenadas sean múltiplos de 16
+        x = (x / TILE_SIZE) * TILE_SIZE;
+        y = (y / TILE_SIZE) * TILE_SIZE;
 
         // Actualizar la pantalla
         vid_vsync();
     }
+
     return 0;
 }
