@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: devkitpro/devkitarm
+    container: devkitpro/devkitarm  # Usamos la imagen oficial
     
     steps:
     - name: Checkout repo
@@ -16,6 +16,12 @@ jobs:
 
     - name: Compile GBA ROM
       run: |
+        # Añadimos las rutas de las herramientas manualmente para evitar el error "Command not found"
+        export DEVKITPRO=/opt/devkitpro
+        export DEVKITARM=/opt/devkitpro/devkitARM
+        export PATH=${DEVKITARM}/bin:$PATH
+        
+        # Ahora sí, compilamos
         cd gba_core
         make
 
