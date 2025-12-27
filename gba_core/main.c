@@ -1,101 +1,64 @@
+```c
 #include "kaia_gba.h"
 
-// --- 1. DEFINICIONES ---
-#define NEGRO    0x0000
-#define AZUL     0x7C00
-#define ROJO     0x001F
-#define VERDE    0x03E0
-#define AMARILLO 0x03FF
+#define TILE_SIZE 16
 
-// --- 2. ESTRUCTURAS ---
-typedef struct {
-    int x, y;
-    int w, h;
-    u16 color;
-} Entity;
+// Variables para el jugador
+int jugador_x = 0;
+int jugador_y = 0;
 
-// --- 3. VARIABLES GLOBALES ---
-unsigned int seed = 12345;
-int score = 0;
+// Variable para detectar flancos de subida
+u16 old_keys;
 
-// --- 4. FUNCIONES ---
-
-// Generador Random simple
-int mi_random(int max) {
-    seed = seed * 1103515245 + 12345;
-    return (unsigned int)(seed / 65536) % max;
-}
-
-void vid_vsync() {
-    while(REG_VCOUNT >= 160);
-    while(REG_VCOUNT < 160);
-}
-
-// CORRECCIÓN CRÍTICA: Eliminada la lógica "if color == 0". 
-// Ahora esta función pinta EXACTAMENTE lo que le digas.
-void dibujarEntidad(Entity *e, u16 color) {
-    for(int i = 0; i < e->w; i++) {
-        for(int j = 0; j < e->h; j++) {
-            int px = e->x + i;
-            int py = e->y + j;
-            
-            // Safety Check: No salir de pantalla
-            if(px >= 0 && px < 240 && py >= 0 && py < 160) {
-                VRAM[py * 240 + px] = color;
-            }
+void dibujarGrid() {
+    for (int i = 0; i < 240; i += TILE_SIZE) {
+        // Dibujar líneas horizontales
+        for (int j = 0; j < 160; j++) {
+            plotPixel(j, i, 0x4210);
+        }
+    }
+    for (int i = 0; i < 160; i += TILE_SIZE) {
+        // Dibujar líneas verticales
+        for (int j = 0; j < 240; j++) {
+            plotPixel(i, j, 0x4210);
         }
     }
 }
 
-int checarColision(Entity *a, Entity *b) {
-    // Retorna 1 si hay superposición, 0 si no
-    return !(a->x + a->w <= b->x ||
-             a->x >= b->x + b->w ||
-             a->y + a->h <= b->y ||
-             a->y >= b->y + b->h);
-}
-
-// --- 5. MAIN ---
 int main() {
-    REG_DISPCNT = MODE_3 | BG2_ENABLE;
-
-    Entity jugador = {120, 80, 16, 16, AZUL};
-    Entity moneda  = {50, 50, 8, 8, AMARILLO};
-
-    // Limpieza inicial de toda la pantalla
-    for(int i=0; i<38400; i++) VRAM[i] = NEGRO;
-
     while (1) {
-        // A. BORRAR RASTRO
-        // Pasamos NEGRO explícitamente. Ahora SÍ pintará negro.
-        dibujarEntidad(&jugador, NEGRO);
-        dibujarEntidad(&moneda, NEGRO);
+        // Limpiar la pantalla
+        fillScreen(0x0000);
 
-        // B. INPUT Y FÍSICA
-        if (!(REG_KEYINPUT & KEY_RIGHT)) { if (jugador.x + jugador.w < 240) jugador.x++; }
-        if (!(REG_KEYINPUT & KEY_LEFT))  { if (jugador.x > 0) jugador.x--; }
-        if (!(REG_KEYINPUT & KEY_UP))    { if (jugador.y > 0) jugador.y--; }
-        if (!(REG_KEYINPUT & KEY_DOWN))  { if (jugador.y + jugador.h < 160) jugador.y++; }
+        // Llamar a la función para dibujar el grid
+        dibujarGrid();
 
-        // C. LÓGICA DE JUEGO
-        if (checarColision(&jugador, &moneda)) {
-            score++; 
-            
-            // Feedback Visual de nivel
-            if (score >= 10) jugador.color = VERDE;
-            else if (score >= 5)  jugador.color = ROJO;
+        // Dibujar al jugador
+        // ...
 
-            // Mover moneda (El borrado ya ocurrió en el paso A)
-            moneda.x = mi_random(220); // 240 - ancho aprox
-            moneda.y = mi_random(140); // 160 - alto aprox
+        // Obtener las teclas presionadas
+        old_keys = keys;
+        keys = keypad();
+
+        // Detección de "Key Down" para los botones de movimiento
+        if ((~old_keys & keys) & KEY_LEFT) {
+            // Mover al jugador hacia la izquierda
+            jugador_x -= TILE_SIZE;
+        }
+        if ((~old_keys & keys) & KEY_RIGHT) {
+            // Mover al jugador hacia la derecha
+            jugador_x += TILE_SIZE;
+        }
+        if ((~old_keys & keys) & KEY_UP) {
+            // Mover al jugador hacia arriba
+            jugador_y -= TILE_SIZE;
+        }
+        if ((~old_keys & keys) & KEY_DOWN) {
+            // Mover al jugador hacia abajo
+            jugador_y += TILE_SIZE;
         }
 
-        // D. DIBUJAR NUEVO ESTADO
-        // Pasamos el color de la entidad explícitamente.
-        dibujarEntidad(&moneda, moneda.color);  
-        dibujarEntidad(&jugador, jugador.color); 
-
-        // E. SYNC
+        // Actualizar la pantalla
         vid_vsync();
     }
     return 0;
