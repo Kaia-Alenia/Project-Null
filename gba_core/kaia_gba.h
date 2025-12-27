@@ -1,4 +1,3 @@
-```c
 #ifndef KAIA_GBA_H
 #define KAIA_GBA_H
 
@@ -16,6 +15,8 @@ typedef unsigned int u32;
 
 // Constantes para el Modo 3
 #define MODE_3 0x0003
+#define BG2_ENABLE 0x0400                 // <--- NUEVO
+#define VRAM ((volatile u16*)0x06000000)  // <--- NUEVO
 
 // Constantes para los botones
 #define KEY_A      0x0001
@@ -30,4 +31,3 @@ typedef unsigned int u32;
 #define KEY_L      0x0200
 
 #endif  // KAIA_GBA_H
-```
