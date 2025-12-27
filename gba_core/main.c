@@ -1,47 +1,63 @@
 #include "kaia_gba.h"
 
-// Definición de la estructura Entity
-typedef struct {
-    int x, y;
-    u8 color;
-} Entity;
+#define NEGRO 0x0000
+#define AZUL 0x7C00
+#define ROJO 0x001F
+#define VERDE 0x03E0
+#define AMARILLO 0x03FF
 
-// Función para checar colisión entre dos entidades
-int checarColision(Entity *a, Entity *b) {
-    // Lógica de colisión, por ejemplo:
-    if (a->x < b->x + 10 && a->x + 10 > b->x && a->y < b->y + 10 && a->y + 10 > b->y) {
-        return 1; // Colisión detectada
+struct Entity {
+    int x, y;
+    int color;
+};
+
+int mi_random(int max) {
+    return (rand() % max);
+}
+
+void vid_vsync() {
+    while (REG_VCOUNT >= 160);
+}
+
+void dibujarEntidad(struct Entity e) {
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < 10; j++) {
+            setPixel(e.x + i, e.y + j, e.color);
+        }
     }
-    return 0; // No hay colisión
+}
+
+int checarColision(struct Entity e1, struct Entity e2) {
+    if (e1.x < e2.x + 10 && e1.x + 10 > e2.x && e1.y < e2.y + 10 && e1.y + 10 > e2.y) {
+        return 1;
+    }
+    return 0;
 }
 
 int main() {
-    // Inicialización del score
+    struct Entity jugador;
+    jugador.x = 10;
+    jugador.y = 10;
+    jugador.color = AZUL;
+
+    struct Entity enemigo;
+    enemigo.x = 50;
+    enemigo.y = 50;
+    enemigo.color = ROJO;
+
     int score = 0;
 
-    // Inicialización de las entidades (jugador y otro objeto)
-    Entity jugador = {10, 10, AZUL}; // Color inicial del jugador
-    Entity objeto = {50, 50, AMARILLO};
+    while (1) {
+        vid_vsync();
+        dibujarEntidad(jugador);
+        dibujarEntidad(enemigo);
 
-    // Bucle principal
-    while(1) {
-        // Verificación de colisión y actualización del score
-        if (checarColision(&jugador, &objeto)) {
+        if (checarColision(jugador, enemigo)) {
             score++;
+            jugador.color = (jugador.color == AZUL) ? VERDE : AZUL;
         }
 
-        // Lógica visual basada en el score
-        if (score >= 10) {
-            jugador.color = VERDE;
-        } else if (score >= 5) {
-            jugador.color = ROJO;
-        } else {
-            // Color por defecto o inicial
-            jugador.color = AZUL;
-        }
-
-        // Actualización de la pantalla y demás lógica de juego
-        // ...
+        delay(100);
     }
 
     return 0;
