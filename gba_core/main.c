@@ -1,19 +1,19 @@
 #include <gba.h>
 
-void vid_vsync() {
-    while (REG_VCOUNT >= 160); // Espera a que la pantalla termine de dibujar
-    while (REG_VCOUNT < 160); // Espera a que la pantalla comience a dibujar nuevamente
-}
-
 int main() {
-    // Inicialización del juego
-    // ...
+    // Inicialización del hardware
+    REG_DISPCNT = MODE_0 | BG2_ENABLE;
 
     while (1) {
         // Bucle principal del juego
         // ...
 
-        vid_vsync(); // Llamada a la función de sincronización vertical
+        // Aplicación de VSync para evitar parpadeo
+        while (REG_VCOUNT >= 160);
+        // ...
+
+        // Actualización de la pantalla
+        // ...
     }
 
     return 0;
