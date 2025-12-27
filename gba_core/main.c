@@ -1,39 +1,36 @@
 #include "kaia_gba.h"
-#define NEGRO   0x0000
-#define AZUL    0x7C00  // (31 << 10)
-
+// Colores
+#define NEGRO 0x0000
+#define AZUL  0x7C00
+// -- Funciones --
 void vid_vsync() {
-    while(REG_VCOUNT >= 160); // Esperar a que termine VBlank
+    while(REG_VCOUNT >= 160); // Esperar si estamos en VBlank
     while(REG_VCOUNT < 160);  // Esperar a que empiece VBlank
 }
-
-void dibujarJugador(int x, int y, u16 color) {
-    // Dibuja un cuadrado de 16x16
+void dibujarJugador(int x, int y, int color) {
     for(int i = 0; i < 16; i++) {
         for(int j = 0; j < 16; j++) {
-            // Escribe directamente en VRAM
             VRAM[(y + j) * 240 + (x + i)] = color;
         }
     }
 }
-
 int main() {
-    // Configurar Pantalla
     REG_DISPCNT = MODE_3 | BG2_ENABLE;
-    int posX = 120;
-    int posY = 80;
-    // Bucle Principal
+    int x = 120;
+    int y = 80;
+    // Limpieza inicial
+    for(int i=0; i<38400; i++) VRAM[i] = NEGRO;
     while (1) {
-        // A. Borrar posición vieja (Pintar NEGRO)
-        dibujarJugador(posX, posY, NEGRO);
-        // B. Leer Inputs (Recuerda: 0 es presionado)
-        if (!(REG_KEYINPUT & KEY_RIGHT)) posX++;
-        if (!(REG_KEYINPUT & KEY_LEFT))  posX--;
-        if (!(REG_KEYINPUT & KEY_UP))    posY--;
-        if (!(REG_KEYINPUT & KEY_DOWN))  posY++;
-        // C. Dibujar posición nueva (Pintar AZUL)
-        dibujarJugador(posX, posY, AZUL);
-        // D. Sincronizar
+        // 1. Borrar (Pintar Negro en posición vieja)
+        dibujarJugador(x, y, NEGRO);
+        // 2. Input
+        if (!(REG_KEYINPUT & KEY_RIGHT)) x++;
+        if (!(REG_KEYINPUT & KEY_LEFT))  x--;
+        if (!(REG_KEYINPUT & KEY_UP))    y--;
+        if (!(REG_KEYINPUT & KEY_DOWN))  y++;
+        // 3. Dibujar (Pintar Azul en posición nueva)
+        dibujarJugador(x, y, AZUL);
+        // 4. Sincronizar
         vid_vsync();
     }
     return 0;
