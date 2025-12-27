@@ -1,24 +1,26 @@
-# Herramientas
-CC      = arm-none-eabi-gcc
-OBJCOPY = arm-none-eabi-objcopy
+# Configuración del compilador
+CC = arm-none-eabi-gcc
+CFLAGS = -Wall -Werror -O2 -mcpu=arm7tdmi -mthumb-interwork -ffreestanding -nostdlib
+CFLAGS += -fdata-sections -ffunction-sections -Wl,--gc-sections
 
-# Nombre del proyecto
-NAME    = rom
+# Configuración del enlazador
+LDFLAGS = -T gba.ld -Wl,--gc-sections
 
-# Flags de compilación para GBA
-CFLAGS  = -mthumb -mthumb-interwork -O2 -Wall -specs=gba.specs
+# Reglas de compilación
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Regla para la construcción del ejecutable
+gba.elf: main.o
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+
+# Regla para la generación del archivo binario
+gba.gba: gba.elf
+	arm-none-eabi-objcopy -O binary $< $@
+
+# Regla para limpiar los archivos temporales
+clean:
+	rm -f *.o gba.elf gba.gba
 
 # Regla por defecto
-all: $(NAME).gba
-
-# Regla para crear el binario final (IMPORTANTE: La linea de abajo necesita TAB)
-$(NAME).gba: $(NAME).elf
-	$(OBJCOPY) -O binary $(NAME).elf $(NAME).gba
-
-# Regla para compilar el codigo C (IMPORTANTE: La linea de abajo necesita TAB)
-$(NAME).elf: main.c
-	$(CC) $(CFLAGS) main.c -o $(NAME).elf
-
-# Limpieza
-clean:
-	rm -f *.elf *.gba
+all: gba.gba
