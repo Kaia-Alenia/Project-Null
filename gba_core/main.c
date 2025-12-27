@@ -1,40 +1,54 @@
 #include "kaia_gba.h"
 
-// DEFINICIONES QUE BORRASTE
-#define NEGRO 0x0000
-#define AZUL  0x7C00
+typedef struct {
+    int x, y;
+    int w, h; // Ancho y alto (16x16)
+    u16 color;
+} Player;
 
-// IMPLEMENTACIÓN COMPLETA (Sin prototipos en el header)
-void vid_vsync() {
-    while(REG_VCOUNT >= 160);
-    while(REG_VCOUNT < 160);
-}
-
-void dibujarJugador(int x, int y, int color) {
-    for(int i = 0; i < 16; i++) {
-        for(int j = 0; j < 16; j++) {
-            VRAM[(y + j) * 240 + (x + i)] = color;
+void dibujarJugador(Player *p, u16 color) {
+    // Dibujar jugador en la posición x, y con el ancho y alto definidos
+    // y el color especificado
+    for (int i = 0; i < p->h; i++) {
+        for (int j = 0; j < p->w; j++) {
+            setPixel(p->x + j, p->y + i, color);
         }
     }
 }
 
 int main() {
-    REG_DISPCNT = MODE_3 | BG2_ENABLE;
-    int x = 120, y = 80;
-
-    // Limpiar pantalla al inicio
-    for(int i=0; i<38400; i++) VRAM[i] = NEGRO;
+    Player p = {120, 80, 16, 16, AZUL};
+    u16 color = AZUL;
 
     while (1) {
-        dibujarJugador(x, y, NEGRO); // Borrar
+        // Lógica de input
+        if (keysDown() & KEY_LEFT) {
+            if (p.x > 0) {
+                p.x--;
+            }
+        }
+        if (keysDown() & KEY_RIGHT) {
+            if (p.x < 240 - p.w) {
+                p.x++;
+            }
+        }
+        if (keysDown() & KEY_UP) {
+            if (p.y > 0) {
+                p.y--;
+            }
+        }
+        if (keysDown() & KEY_DOWN) {
+            if (p.y < 160 - p.h) {
+                p.y++;
+            }
+        }
 
-        if (!(REG_KEYINPUT & KEY_RIGHT)) x++;
-        if (!(REG_KEYINPUT & KEY_LEFT))  x--;
-        if (!(REG_KEYINPUT & KEY_UP))    y--;
-        if (!(REG_KEYINPUT & KEY_DOWN))  y++;
+        // Dibujar jugador
+        dibujarJugador(&p, p.color);
 
-        dibujarJugador(x, y, AZUL);  // Pintar
+        // Actualizar pantalla
         vid_vsync();
     }
+
     return 0;
 }
