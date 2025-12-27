@@ -1,4 +1,3 @@
-[[FILE: gba_core/main.c]]
 #include "kaia_gba.h"
 
 // --- CONFIGURACIÓN ---
@@ -158,4 +157,3 @@ int main() {
     }
     return 0;
 }
-[[ENDFILE]]
