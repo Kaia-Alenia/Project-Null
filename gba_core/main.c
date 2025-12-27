@@ -1,9 +1,8 @@
-```c
 #include "kaia_gba.h"
 
 // --- CONSTANTES ---
-#define NEGRO 0x0000
-#define AZUL 0x7C00
+#define NEGRO    0x0000
+#define AZUL     0x7C00
 #define AMARILLO 0x03FF
 
 // --- ESTRUCTURAS ---
@@ -13,12 +12,11 @@ typedef struct {
     u16 color;
 } Entity;
 
-// --- VARIABLES GLOBALES (Para Random simple) ---
+// --- VARIABLES GLOBALES ---
 unsigned int seed = 12345;
 
 // --- FUNCIONES ---
 
-// Generador de números pseudo-aleatorios (LCG simple)
 int mi_random(int max) {
     seed = seed * 1103515245 + 12345;
     return (unsigned int)(seed / 65536) % max;
@@ -41,55 +39,47 @@ void dibujarEntidad(Entity *e, u16 color) {
     }
 }
 
-// Detectar colisión AABB (Cajas alineadas a los ejes)
 int checarColision(Entity *a, Entity *b) {
-    return !(a->x + a->w <= b->x ||  // A está a la izquierda de B
-             a->x >= b->x + b->w ||  // A está a la derecha de B
-             a->y + a->h <= b->y ||  // A está arriba de B
-             a->y >= b->y + b->h);   // A está abajo de B
+    return !(a->x + a->w <= b->x ||
+             a->x >= b->x + b->w ||
+             a->y + a->h <= b->y ||
+             a->y >= b->y + b->h);
 }
 
 // --- MAIN ---
 int main() {
     REG_DISPCNT = MODE_3 | BG2_ENABLE;
 
-    // Inicializar Entidades
     Entity jugador = {120, 80, 16, 16, AZUL};
-    Entity moneda  = {50, 50, 8, 8, AMARILLO}; // Moneda más pequeña (8x8)
+    Entity moneda  = {50, 50, 8, 8, AMARILLO};
 
     // Limpieza inicial
     for(int i=0; i<38400; i++) VRAM[i] = NEGRO;
 
     while (1) {
-        // 1. BORRAR (Pintar NEGRO)
+        // 1. BORRAR
         dibujarEntidad(&jugador, NEGRO);
         dibujarEntidad(&moneda, NEGRO);
 
-        // 2. INPUT Y FÍSICA
+        // 2. INPUT
         if (!(REG_KEYINPUT & KEY_RIGHT)) { if (jugador.x + jugador.w < 240) jugador.x++; }
         if (!(REG_KEYINPUT & KEY_LEFT))  { if (jugador.x > 0) jugador.x--; }
         if (!(REG_KEYINPUT & KEY_UP))    { if (jugador.y > 0) jugador.y--; }
         if (!(REG_KEYINPUT & KEY_DOWN))  { if (jugador.y + jugador.h < 160) jugador.y++; }
 
-        // 3. LÓGICA DE JUEGO (Colisión)
+        // 3. COLISIÓN
         if (checarColision(&jugador, &moneda)) {
-            // Si toca la moneda, moverla a un lugar aleatorio
-            // (Borramos la moneda vieja antes de moverla para no dejar rastro)
-            dibujarEntidad(&moneda, NEGRO); 
-
-            // Asegurarse de que la moneda no se salga de la pantalla
-            moneda.x = mi_random(232 - moneda.w); // Rango seguro X
-            moneda.y = mi_random(152 - moneda.h); // Rango seguro Y
+            dibujarEntidad(&moneda, NEGRO); // Borrar de pos vieja
+            moneda.x = mi_random(220);
+            moneda.y = mi_random(140);
         }
 
-        // 4. DIBUJAR (Pintar color real)
+        // 4. DIBUJAR
         dibujarEntidad(&moneda, moneda.color);
         dibujarEntidad(&jugador, jugador.color);
 
         // 5. SYNC
         vid_vsync();
     }
-
     return 0;
 }
-```
