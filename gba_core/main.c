@@ -1,49 +1,19 @@
-#include "kaia_gba.h"
+#include <gba.h>
 
-// Definir colores
-#define NEGRO 0x0000
-#define BLANCO 0xFFFF
-#define AZUL 0x7C00
-
-// Variables del jugador
-int posX = 120;
-int posY = 80;
+void vid_vsync() {
+    while (REG_VCOUNT >= 160); // Espera a que la pantalla termine de dibujar
+    while (REG_VCOUNT < 160); // Espera a que la pantalla comience a dibujar nuevamente
+}
 
 int main() {
-    // Activar el MODO 3
-    REG_DISPCNT = MODE_3 | BG2_ENABLE;
+    // Inicialización del juego
+    // ...
 
     while (1) {
-        // Lectura de Inputs
-        if (!(REG_KEYINPUT & KEY_UP)) {
-            posY--;
-        }
-        if (!(REG_KEYINPUT & KEY_DOWN)) {
-            posY++;
-        }
-        if (!(REG_KEYINPUT & KEY_LEFT)) {
-            posX--;
-        }
-        if (!(REG_KEYINPUT & KEY_RIGHT)) {
-            posX++;
-        }
+        // Bucle principal del juego
+        // ...
 
-        // Limpiar pantalla
-        for (int i = 0; i < 38400; i++) {
-            VRAM[i] = NEGRO;
-        }
-
-        // Dibujar jugador
-        for (int y = 0; y < 16; y++) {
-            for (int x = 0; x < 16; x++) {
-                VRAM[(posY + y) * 240 + (posX + x)] = AZUL;
-            }
-        }
-
-        // Retardo
-        for (int i = 0; i < 10000; i++) {
-            // Bucle vacío para retrasar el movimiento
-        }
+        vid_vsync(); // Llamada a la función de sincronización vertical
     }
 
     return 0;
