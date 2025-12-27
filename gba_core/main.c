@@ -1,24 +1,14 @@
-#include <gba.h>
-
-#define MODE_3 0x3
-#define BG2_ENABLE 0x400
+#include "kaia_gba.h"
 
 int main() {
-    // Inicialización
-    REG_DISPCNT = MODE_3 | BG2_ENABLE;
-
-    // Llenar la VRAM con 0x0000 (NEGRO)
-    for (volatile unsigned short* i = (volatile unsigned short*)0x06000000; i < (volatile unsigned short*)0x06000000 + 38400; i++) {
-        *i = 0x0000;
+    // Inicializar la pantalla con color negro
+    for (int i = 0; i < 240 * 160; i++) {
+        VRAM[i] = 0x0000; // Color negro
     }
 
     while (1) {
-        // Lógica del juego aquí
-
-        // Esperar a que REG_VCOUNT sea >= 160 y < 228 para la seguridad de VSync
-        while (REG_VCOUNT >= 160 && REG_VCOUNT < 228) {
-            // Esperar a que se cumpla la condición
-        }
+        // Llamar a la función vid_vsync para sincronizar con la pantalla
+        vid_vsync();
     }
 
     return 0;
