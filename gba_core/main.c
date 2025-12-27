@@ -2,35 +2,32 @@
 
 // --- CONSTANTES ---
 #define NEGRO 0x0000
-#define AZUL  0x7C00
+#define AZUL 0x7C00
 
 // --- ESTRUCTURAS ---
 typedef struct {
     int x, y;
-    int w, h;     // Ancho y Alto
+    int w, h;
     u16 color;
 } Player;
 
-// --- FUNCIONES (Definidas ANTES de usarse) ---
+// --- FUNCIONES ---
 
 void vid_vsync() {
-    while(REG_VCOUNT >= 160); // Esperar fin de VBlank
-    while(REG_VCOUNT < 160);  // Esperar inicio de VBlank
+    while(REG_VCOUNT >= 160);
+    while(REG_VCOUNT < 160);
 }
 
-// Dibuja al jugador usando sus propias coordenadas y color
-void dibujarJugador(Player *p, u16 color_override) {
-    u16 color_final = (color_override == 0) ? p->color : color_override;
-    
-    // Validar límites de dibujo para no romper memoria
+// Función simple: Pinta el rectángulo del color que le digas.
+void dibujarJugador(Player *p, u16 color) {
     for(int i = 0; i < p->w; i++) {
         for(int j = 0; j < p->h; j++) {
             int px = p->x + i;
             int py = p->y + j;
             
-            // Solo pintar si está dentro de pantalla (Safety Check)
+            // Safety Check (Límites de pantalla)
             if(px >= 0 && px < 240 && py >= 0 && py < 160) {
-                VRAM[py * 240 + px] = color_final;
+                VRAM[py * 240 + px] = color;
             }
         }
     }
@@ -42,15 +39,12 @@ int main() {
 
     // Inicializar Jugador
     Player p = {120, 80, 16, 16, AZUL};
-
-    // Limpieza inicial
+    // Limpieza inicial de pantalla
     for(int i=0; i<38400; i++) VRAM[i] = NEGRO;
-
     while (1) {
-        // 1. Borrar (Pintar NEGRO en posición vieja)
+        // 1. BORRAR: Pasamos NEGRO explícitamente
         dibujarJugador(&p, NEGRO);
-
-        // 2. Input y Física (Con Límites)
+        // 2. INPUT Y FÍSICA
         if (!(REG_KEYINPUT & KEY_RIGHT)) { 
             if (p.x + p.w < 240) p.x++; 
         }
@@ -63,13 +57,10 @@ int main() {
         if (!(REG_KEYINPUT & KEY_DOWN))  { 
             if (p.y + p.h < 160) p.y++; 
         }
-
-        // 3. Dibujar (Pintar color del jugador en posición nueva)
-        dibujarJugador(&p, 0); // 0 indica "usa el color del struct"
-
-        // 4. Sincronizar
+        // 3. DIBUJAR: Pasamos el color del jugador explícitamente
+        dibujarJugador(&p, p.color);
+        // 4. SYNC
         vid_vsync();
     }
-
     return 0;
 }
