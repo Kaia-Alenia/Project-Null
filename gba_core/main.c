@@ -1,13 +1,19 @@
 #include "kaia_gba.h"
 
-int main() {
-    // Inicializar la pantalla con color negro
-    for (int i = 0; i < 240 * 160; i++) {
-        VRAM[i] = 0x0000; // Color negro
-    }
+// Función para espera de VSync
+void vid_vsync() {
+    while(REG_VCOUNT < 160);
+}
 
-    while (1) {
-        // Llamar a la función vid_vsync para sincronizar con la pantalla
+int main() {
+    // Inicializa REG_DISPCNT
+    REG_DISPCNT = MODE_0 | BG0_ON;
+
+    while(1) {
+        // Lógica de movimiento
+        // Aquí va tu lógica de juego o movimiento
+
+        // Llama a vid_vsync() al final del bucle
         vid_vsync();
     }
 
