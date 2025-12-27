@@ -13,11 +13,10 @@ all: $(NAME).gba
 
 # Crear el archivo .gba desde el .elf
 $(NAME).gba: $(NAME).elf
- $(OBJCOPY) -O binary $(NAME).elf $(NAME).gba
+➡️$(OBJCOPY) -O binary $(NAME).elf $(NAME).gba  <-- ¡AQUÍ VA UN TAB!
 
-# Compilar main.c y crear el ejecutable .elf
 $(NAME).elf: main.c
- $(CC) $(CFLAGS) main.c -o $(NAME).elf
+➡️$(CC) $(CFLAGS) main.c -o $(NAME).elf         <-- ¡AQUÍ TAMBIÉN!
 
 clean:
  rm -f *.elf *.gba
