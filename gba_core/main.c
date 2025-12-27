@@ -1,4 +1,3 @@
-```c
 #include "kaia_gba.h"
 
 // Definiciones de constantes
@@ -99,4 +98,3 @@ int main() {
 
     return 0;
 }
-```
