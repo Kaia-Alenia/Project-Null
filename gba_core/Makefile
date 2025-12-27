@@ -1,26 +1,34 @@
-# Configuración del compilador
 CC = arm-none-eabi-gcc
-CFLAGS = -Wall -Werror -O2 -mcpu=arm7tdmi -mthumb-interwork -ffreestanding -nostdlib
-CFLAGS += -fdata-sections -ffunction-sections -Wl,--gc-sections
+OBJCOPY = arm-none-eabi-objcopy
 
-# Configuración del enlazador
-LDFLAGS = -T gba.ld -Wl,--gc-sections
+# --- 1. ARQUITECTURA ---
+# Definimos el procesador exacto de la GBA
+ARCH = -mcpu=arm7tdmi -mthumb -mthumb-interwork
 
-# Reglas de compilación
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+# --- 2. SPECS ---
+# Usamos las specs nativas
+SPECS = -specs=gba.specs
 
-# Regla para la construcción del ejecutable
-gba.elf: main.o
-	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+# --- 3. FLAGS DE COMPILACION ---
+# -O2: Optimización alta, -fno-exceptions: Sin basura C++
+CFLAGS = $(ARCH) $(SPECS) -O2 -Wall -ffunction-sections -fdata-sections -fno-exceptions -fno-unwind-tables
 
-# Regla para la generación del archivo binario
-gba.gba: gba.elf
-	arm-none-eabi-objcopy -O binary $< $@
+# --- 4. FLAGS DEL ENLAZADOR ---
+# --gc-sections: BORRA funciones muertas
+LDFLAGS = $(ARCH) $(SPECS) -Wl,--gc-sections
 
-# Regla para limpiar los archivos temporales
+# --- 5. RUTAS ---
+SRC = gba_core/main.c
+TARGET = rom
+
+# --- 6. REGLAS ---
+all: $(TARGET).gba
+
+$(TARGET).gba: $(TARGET).elf
+ $(OBJCOPY) -O binary $(TARGET).elf $(TARGET).gba
+
+$(TARGET).elf: $(SRC)
+ $(CC) $(CFLAGS) $(LDFLAGS) $(SRC) -o $(TARGET).elf
+
 clean:
-	rm -f *.o gba.elf gba.gba
-
-# Regla por defecto
-all: gba.gba
+ rm -f $(TARGET).elf $(TARGET).gba
