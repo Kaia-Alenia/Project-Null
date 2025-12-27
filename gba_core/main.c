@@ -1,87 +1,102 @@
 #include "kaia_gba.h"
 
 // Definiciones de colores
-#define GRIS 0xCCCCCC
-#define NEGRO 0x000000
+#define COLOR_GRIS 0xCCCCCC
+#define COLOR_NEGRO 0x000000
+#define COLOR_JUGADOR 0xFF0000
+#define COLOR_MONEDA 0xFFFF00
 
-// Definiciones de tamaños
-#define CASILLA_TAM 16
-#define JUGADOR_TAM 14
-
-// Variables globales
-u16* videoBuffer = (u16*) 0x06000000;
-u16 keys_down;
+// Estructura para el jugador y la moneda
+typedef struct {
+    u16 x, y;
+} objeto;
 
 // Función para dibujar la rejilla
 void dibujarGrid() {
-    for (int y = 0; y < 160; y += CASILLA_TAM) {
-        for (int x = 0; x < 240; x += CASILLA_TAM) {
-            // Dibujar borde gris
-            for (int i = 0; i < CASILLA_TAM; i++) {
-                videoBuffer[(y * 240) + x + i] = GRIS;
-                videoBuffer[((y + CASILLA_TAM - 1) * 240) + x + i] = GRIS;
-            }
-            for (int i = 0; i < CASILLA_TAM; i++) {
-                videoBuffer[(y + i) * 240 + x] = GRIS;
-                videoBuffer[(y + i) * 240 + x + CASILLA_TAM - 1] = GRIS;
+    u16* vram = (u16*)0x06000000;
+    for (u16 y = 0; y < 160; y += 16) {
+        for (u16 x = 0; x < 240; x += 16) {
+            // Dibujar celda de la rejilla
+            for (u16 dy = 0; dy < 16; dy++) {
+                for (u16 dx = 0; dx < 16; dx++) {
+                    if (dx == 0 || dx == 15 || dy == 0 || dy == 15) {
+                        vram[(y + dy) * 240 + x + dx] = COLOR_GRIS;
+                    }
+                }
             }
         }
     }
 }
 
-// Función para dibujar al jugador
-void dibujarJugador(int x, int y) {
-    for (int i = 0; i < JUGADOR_TAM; i++) {
-        for (int j = 0; j < JUGADOR_TAM; j++) {
-            videoBuffer[((y + 1 + i) * 240) + x + 1 + j] = 0xFFFFFF; // Color del jugador
+// Función para dibujar un objeto (jugador o moneda)
+void dibujarObjeto(objeto* obj, u16 color) {
+    u16* vram = (u16*)0x06000000;
+    for (u16 dy = 0; dy < 14; dy++) {
+        for (u16 dx = 0; dx < 14; dx++) {
+            vram[(obj->y + dy + 1) * 240 + obj->x + dx + 1] = color;
         }
     }
 }
 
-// Función para borrar al jugador
-void borrarJugador(int x, int y) {
-    for (int i = 0; i < JUGADOR_TAM; i++) {
-        for (int j = 0; j < JUGADOR_TAM; j++) {
-            videoBuffer[((y + 1 + i) * 240) + x + 1 + j] = NEGRO;
+// Función para borrar un objeto (jugador o moneda)
+void borrarObjeto(objeto* obj) {
+    u16* vram = (u16*)0x06000000;
+    for (u16 dy = 0; dy < 14; dy++) {
+        for (u16 dx = 0; dx < 14; dx++) {
+            vram[(obj->y + dy + 1) * 240 + obj->x + dx + 1] = COLOR_NEGRO;
         }
     }
+}
+
+// Generador de números aleatorios manual (LCG)
+u16 mi_random() {
+    static u16 seed = 1;
+    seed = (seed * 1103515245 + 12345) % 0x10000;
+    return seed;
 }
 
 int main() {
-    // Inicializar la rejilla
+    // Inicializar el hardware
+    REG_DISPCTL = MODE_0 | BG2_ENABLE;
+
+    // Dibujar la rejilla una sola vez
     dibujarGrid();
 
-    int jugadorX = 0;
-    int jugadorY = 0;
+    // Inicializar el jugador y la moneda
+    objeto jugador = {16, 16};
+    objeto moneda = {128, 128};
 
+    // Bucle principal
     while (1) {
-        // Leer entradas
-        keys_down = ~REG_KEY_INPUT;
+        // Esperar al VBlank
+        while (REG_VCOUNT >= 160);
+        while (REG_VCOUNT < 160);
 
-        // Mover al jugador
-        if (keys_down & KEY_LEFT) {
-            borrarJugador(jugadorX, jugadorY);
-            jugadorX -= CASILLA_TAM;
-            dibujarJugador(jugadorX, jugadorY);
+        // Mover al jugador y la moneda
+        if (KEY_DOWN_NOW(BUTTON_LEFT)) {
+            jugador.x -= 16;
         }
-        if (keys_down & KEY_RIGHT) {
-            borrarJugador(jugadorX, jugadorY);
-            jugadorX += CASILLA_TAM;
-            dibujarJugador(jugadorX, jugadorY);
+        if (KEY_DOWN_NOW(BUTTON_RIGHT)) {
+            jugador.x += 16;
         }
-        if (keys_down & KEY_UP) {
-            borrarJugador(jugadorX, jugadorY);
-            jugadorY -= CASILLA_TAM;
-            dibujarJugador(jugadorX, jugadorY);
+        if (KEY_DOWN_NOW(BUTTON_UP)) {
+            jugador.y -= 16;
         }
-        if (keys_down & KEY_DOWN) {
-            borrarJugador(jugadorX, jugadorY);
-            jugadorY += CASILLA_TAM;
-            dibujarJugador(jugadorX, jugadorY);
+        if (KEY_DOWN_NOW(BUTTON_DOWN)) {
+            jugador.y += 16;
         }
 
-        // Esperar a la siguiente VBlank
-        vid_vsync();
+        // Generar un nuevo número aleatorio para la moneda
+        moneda.x = (mi_random() % 15) * 16;
+        moneda.y = (mi_random() % 10) * 16;
+
+        // Borrar el jugador y la moneda antiguos
+        borrarObjeto(&jugador);
+        borrarObjeto(&moneda);
+
+        // Dibujar el jugador y la moneda nuevos
+        dibujarObjeto(&jugador, COLOR_JUGADOR);
+        dibujarObjeto(&moneda, COLOR_MONEDA);
     }
 
     return 0;
