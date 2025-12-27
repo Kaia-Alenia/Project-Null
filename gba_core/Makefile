@@ -1,19 +1,16 @@
-# Configuración del compilador
-CC = arm-none-eabi-gcc
-AS = arm-none-eabi-as
-LD = arm-none-eabi-ld
+TARGET := mi_juego_gba
+SOURCES := .
+INCLUDES := ..
 
-# Configuración de los flags del compilador
-CFLAGS = -O2 -Wall -Werror
-ASFLAGS = -O2
-LDFLAGS = -O2
+CC := arm-eabi-gcc
+AS := arm-eabi-as
+LD := arm-eabi-ld
+OBJCOPY := arm-eabi-objcopy
 
-# Archivos fuente
-SRC = main.c
+CFLAGS := -mthumb -mthumb-interwork -O2 -Wall
+LDFLAGS := -mthumb -mthumb-interwork -Wl,--gc-sections
 
-# Archivos objeto
-OBJ = $(SRC:.c=.o)
-
-# Regla para compilar el archivo principal
-all: $(OBJ)
-	$(LD) $(LDFLAGS) -o main.gba $(OBJ)
+all:
+	$(CC) $(CFLAGS) -c $(SOURCES)/*.c
+	$(LD) $(LDFLAGS) -o $(TARGET).elf *.o
+	$(OBJCOPY) $(TARGET).elf $(TARGET).gba
