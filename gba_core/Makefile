@@ -1,16 +1,23 @@
-TARGET := mi_juego_gba
-SOURCES := .
-INCLUDES := ..
+# Herramientas
+CC      = arm-none-eabi-gcc
+OBJCOPY = arm-none-eabi-objcopy
 
-CC := arm-eabi-gcc
-AS := arm-eabi-as
-LD := arm-eabi-ld
-OBJCOPY := arm-eabi-objcopy
+# Nombre del juego
+NAME    = rom
 
-CFLAGS := -mthumb -mthumb-interwork -O2 -Wall
-LDFLAGS := -mthumb -mthumb-interwork -Wl,--gc-sections
+# Flags de compilación para GBA (Arquitectura ARM7TDMI)
+CFLAGS  = -mthumb -mthumb-interwork -O2 -Wall -specs=gba.specs
 
-all:
-	$(CC) $(CFLAGS) -c $(SOURCES)/*.c
-	$(LD) $(LDFLAGS) -o $(TARGET).elf *.o
-	$(OBJCOPY) $(TARGET).elf $(TARGET).gba
+# Regla principal
+all: $(NAME).gba
+
+# Crear el archivo .gba desde el .elf
+$(NAME).gba: $(NAME).elf
+ $(OBJCOPY) -O binary $(NAME).elf $(NAME).gba
+
+# Compilar main.c y crear el ejecutable .elf
+$(NAME).elf: main.c
+ $(CC) $(CFLAGS) main.c -o $(NAME).elf
+
+clean:
+ rm -f *.elf *.gba
