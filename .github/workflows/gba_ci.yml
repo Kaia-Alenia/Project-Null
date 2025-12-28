@@ -54,6 +54,13 @@ jobs:
           -H "Content-Type: text/plain" \
           --data-binary "@error_log.txt"
           exit 1
+      # --- AVISAR ÉXITO A LIA ---
+      - name: Tell Lia Success
+        if: steps.make.outcome == 'success'
+        run: |
+          curl -X POST "https://TU-URL-DE-RENDER.onrender.com" \
+          -H "Content-Type: text/plain" \
+          -d "✅ ¡ÉXITO MAESTRO! La compilación GBA terminó perfecta. Ya puedes descargar la ROM."
 
       # Subir el juego si todo sale bien
       - name: Upload GBA ROM
