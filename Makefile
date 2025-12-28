@@ -1,12 +1,14 @@
 CC = arm-none-eabi-gcc
 CFLAGS = -Wall -Werror -O2
-LDFLAGS = -mcpu=arm7tdmi -mthumb -mthumb-interwork
+LDFLAGS = -mcpu=arm7tdmi -mthumb -Wl,--gc-sections
 
-main.elf: main.o
-	$(CC) $(LDFLAGS) -o $@ $^
+all: main.gba
 
 main.o: src/main.c
-	$(CC) $(CFLAGS) -c -o $@ $^
+	$(CC) $(CFLAGS) -c src/main.c -o main.o
+
+main.gba: main.o
+	$(CC) $(LDFLAGS) main.o -o main.gba
 
 clean:
-	rm -f main.elf main.o
+	rm -f main.o main.gba
