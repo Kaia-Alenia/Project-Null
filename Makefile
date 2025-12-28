@@ -1,12 +1,14 @@
 CC = arm-none-eabi-gcc
-CFLAGS = -mcpu=arm7tdmi -O2 -Wall
-LDFLAGS = -mcpu=arm7tdmi -Wl,--gc-sections
+CFLAGS = -Wall -Werror -O2
+LDFLAGS = -nostartfiles
 
-all: src/main.o
-	$(CC) $(CFLAGS) -o output.elf src/main.o
+all: main.elf
 
-src/main.o: src/main.c
-	$(CC) $(CFLAGS) -c src/main.c
+main.o: src/main.c
+	$(CC) $(CFLAGS) -c src/main.c -o main.o
+
+main.elf: main.o
+	$(CC) $(LDFLAGS) main.o -o main.elf
 
 clean:
-	rm -f src/main.o output.elf
+	rm -f main.o main.elf
