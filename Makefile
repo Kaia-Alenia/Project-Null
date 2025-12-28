@@ -1,16 +1,16 @@
-makefile
+# Define la compilador
 CC = gcc
+
+# Define las banderas de compilación
 CFLAGS = -Wall -Werror
-LDFLAGS = -lgcc
-TARGET = main.gba
 
-all: $(TARGET)
+# Define el objetivo
+all: main
 
-$(TARGET): src/main.o
-	$(CC) $(LDFLAGS) -o $@ $^
+# Regla para compilar el archivo main.c
+main: src/main.c
+	$(CC) $(CFLAGS) -o main src/main.c
 
-src/main.o: src/main.c include/kaia_gba.h
-	$(CC) $(CFLAGS) -c -o $@ $<
-
+# Regla para limpiar los archivos objeto
 clean:
-	rm -f *.o $(TARGET)
+	rm -f main
