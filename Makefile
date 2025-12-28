@@ -1,9 +1,12 @@
-CC = arm-none-eabi-gcc
-CFLAGS = -mcpu=arm7tdmi -O2 -Wall
-LDFLAGS = -mcpu=arm7tdmi -Wl,--gc-sections
+CC = gcc
+CFLAGS = -Wall -Wextra -O2 -march=armv4t -mtune=arm7tdmi
+LDFLAGS = -nostartfiles
 
-main.o: src/main.c
-    $(CC) $(CFLAGS) -c src/main.c -o main.o
+all: main.o
+	$(CC) $(LDFLAGS) -o main.elf main.o
 
-main: main.o
-    $(CC) $(LDFLAGS) main.o -o main
+main.o: src/main.c include/kaia_gba.h
+	$(CC) $(CFLAGS) -c src/main.c -o main.o
+
+clean:
+	rm -f main.o main.elf
