@@ -1,0 +1,57 @@
+name: GBA Compilation System
+
+# ACTIVADORES
+on:
+  push:
+    paths:
+      - '**/*.c'
+      - '**/*.h'
+      - 'Makefile'
+  # ESTO HABILITA EL BOTÓN MANUAL "Run workflow"
+  workflow_dispatch: 
+
+jobs:
+  build:
+    name: Compilar GBA ROM
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitarm  # Usamos el contenedor oficial de GBA
+    
+    steps:
+      # 1. Bajar el código
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      # 2. Compilar (Make)
+      - name: Run Make
+        id: make
+        run: |
+          # Limpiamos intentos previos y compilamos
+          make clean || true
+          make 2> error_log.txt
+        continue-on-error: true # No detenerse si falla, para poder reportar
+
+      # 3. SI FALLA: Enviar reporte a Lia (Render)
+      - name: Report Error to Lia
+        if: steps.make.outcome == 'failure'
+        run: |
+          echo "❌ COMPILATION FAILED"
+          
+          # Leemos el log de error
+          ERROR_CONTENT=$(cat error_log.txt)
+          
+          # Enviamos el error a tu servidor (CAMBIA LA URL)
+          # Usamos jq para escapar el JSON si es posible, o raw text
+          curl -X POST https://lia-project-manager.onrender.com/
+          -H "Content-Type: text/plain" \
+          -d "$ERROR_CONTENT"
+          
+          # Hacemos que el action marque rojo en GitHub
+          exit 1
+
+      # 4. SI FUNCIONA: Guardar el .gba para que lo descargues
+      - name: Upload GBA ROM
+        if: steps.make.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-rom
+          path: "*.gba"
