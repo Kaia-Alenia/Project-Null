@@ -1,18 +1,12 @@
-#include "include/kaia_gba.h"
+#include "kaia_gba.h"
 
 int main() {
-	// Inicialización del modo 3
-	*(volatile unsigned short*)0x04000000 = 0x0003;
-
+	// Código de inicialización y configuración del GBA
+	REG_DISPCNT = MODE_3 | BG2_ENABLE;
+	
 	while (1) {
-		// Lee la entrada del teclado
-		unsigned short keys = *(volatile unsigned short*)0x04000130;
-
-		// Verifica si se presionó la tecla A
-		if (keys & 0x0001) {
-			// Acción cuando se presiona la tecla A
-		}
+		// Código de juego o aplicación
 	}
-
+	
 	return 0;
 }
