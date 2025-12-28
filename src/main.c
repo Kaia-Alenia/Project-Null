@@ -1,65 +1,89 @@
 #include <stdint.h>
 
-// --- REGISTROS GBA (El Hardware) ---
-#define REG_DISPCNT  (*(volatile uint16_t*)0x04000000)
-#define VRAM         ((volatile uint16_t*)0x06000000)
-#define REG_KEYINPUT (*(volatile uint16_t*)0x04000130)
+// --- DEFINICIONES DE HARDWARE GBA (BARE METAL) ---
+// Al ponerlas aquí, eliminamos la necesidad de .h externos
+typedef uint16_t u16;
+typedef uint32_t u32;
 
-// --- CONFIGURACIÓN ---
-#define MODE_3       0x0003
-#define BG2_ENABLE   0x0400
+#define REG_DISPCNT  (*(volatile u16*)0x04000000)
+#define VRAM         ((volatile u16*)0x06000000)
+#define REG_KEYINPUT (*(volatile u16*)0x04000130)
 
-// --- COLORES ---
-#define COLOR_RED    0x001F
+// Configuración de Pantalla
+#define MODE_3       0x0003  // Modo de video bitmap 240x160
+#define BG2_ENABLE   0x0400  // Activar fondo 2
+
+// Colores (Formato 0x555 BGR)
+#define COLOR_LIA    0x7C00  // Azul/Morado (aprox)
 #define COLOR_BLACK  0x0000
-#define COLOR_GREEN  0x03E0
+#define COLOR_WHITE  0x7FFF
 
-// --- INPUTS ---
+// Botones
+#define KEY_A        0x0001
+#define KEY_B        0x0002
 #define KEY_RIGHT    0x0010
 #define KEY_LEFT     0x0020
 #define KEY_UP       0x0040
 #define KEY_DOWN     0x0080
 
-// Dibujar un pixel
-void plot(int x, int y, uint16_t color) {
-    if(x >= 0 && x < 240 && y >= 0 && y < 160) {
+// --- FUNCIONES GRÁFICAS BÁSICAS ---
+
+// Dibujar un pixel individual
+void plot_pixel(int x, int y, u16 color) {
+    if (x >= 0 && x < 240 && y >= 0 && y < 160) {
         VRAM[y * 240 + x] = color;
     }
 }
 
-// Dibujar jugador
-void draw_player(int x, int y, uint16_t color) {
-    for(int i=0; i<10; i++) {
-        for(int j=0; j<10; j++) {
-            plot(x+j, y+i, color);
+// Dibujar un cuadrado (El Jugador)
+void draw_rect(int x, int y, int w, int h, u16 color) {
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            plot_pixel(x + j, y + i, color);
         }
     }
 }
 
-void delay(int n) { volatile int x=0; for(int i=0; i<n; i++) x++; }
+// Retardo simple (para que no vaya a 1000fps)
+void delay(volatile int amount) {
+    while(amount--) __asm__("nop");
+}
 
-// --- EL CEREBRO QUE FALTABA (MAIN) ---
+// --- FUNCIÓN PRINCIPAL (EL MOTOR) ---
 int main() {
-    REG_DISPCNT = MODE_3 | BG2_ENABLE; // Encender pantalla
+    // 1. Configurar Pantalla
+    REG_DISPCNT = MODE_3 | BG2_ENABLE;
 
-    int x = 120, y = 80; // Posición inicial
+    // 2. Variables de Estado
+    int player_x = 110;
+    int player_y = 70;
+    u16 player_color = COLOR_LIA;
 
-    while(1) {
-        // 1. Leer botones (0 = presionado)
-        if(!(REG_KEYINPUT & KEY_RIGHT)) x++;
-        if(!(REG_KEYINPUT & KEY_LEFT))  x--;
-        if(!(REG_KEYINPUT & KEY_UP))    y--;
-        if(!(REG_KEYINPUT & KEY_DOWN))  y++;
+    // 3. Bucle Infinito (Game Loop)
+    while (1) {
+        // A. Leer Controles (Lógica inversa: 0 = presionado)
+        u16 keys = REG_KEYINPUT;
+        
+        if (!(keys & KEY_RIGHT)) player_x++;
+        if (!(keys & KEY_LEFT))  player_x--;
+        if (!(keys & KEY_UP))    player_y--;
+        if (!(keys & KEY_DOWN))  player_y++;
+        
+        if (!(keys & KEY_A))     player_color = COLOR_WHITE; // Botón A cambia color
+        else                     player_color = COLOR_LIA;
 
-        // 2. Limpiar pantalla (parcial o total)
-        // Para simplificar, pintamos negro donde estaba antes o todo (lento pero seguro)
-        for(int i=0; i<240*160; i++) VRAM[i] = COLOR_BLACK;
+        // B. Limpiar Pantalla (Fuerza bruta, lento pero seguro)
+        // En el futuro usaremos "Double Buffering", por ahora esto parpadeará un poco pero funciona.
+        for (int i = 0; i < 240 * 160; i++) {
+            VRAM[i] = COLOR_BLACK;
+        }
 
-        // 3. Dibujar
-        draw_player(x, y, COLOR_GREEN);
+        // C. Dibujar Jugador
+        draw_rect(player_x, player_y, 10, 10, player_color);
 
-        // 4. Esperar
+        // D. Sincronización simple
         delay(5000);
     }
+
     return 0;
-}
+¿
