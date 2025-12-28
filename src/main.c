@@ -67,7 +67,7 @@ int main() {
         for (int i = 0; i < 240 * 160; i++) VRAM[i] = BLACK;
 
         // C. DIBUJAR JUGADOR NUEVO
-        draw_rect(player_x, player_y, BLUE);
+       draw_rect(player_x, player_y, 0x001F);
 
         // D. ESPERAR UN POCO (Para ver el movimiento)
         delay(5000);
