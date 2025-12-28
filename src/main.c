@@ -1,6 +1,12 @@
 #include "kaia_gba.h"
 
 int main() {
-	// Código principal
-	return 0;
+    // Inicialización del modo 3
+    *(volatile unsigned short*)0x04000000 = 0x0003 | 0x0400;
+
+    while(1) {
+        // Bucle principal
+    }
+
+    return 0;
 }
