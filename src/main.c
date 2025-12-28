@@ -1,16 +1,21 @@
 #include "kaia_gba.h"
 
 int main() {
-    // Configuramos el modo de pantalla
+    // Inicializar el modo de pantalla
     *(volatile unsigned short*)0x04000000 = MODE_3 | BG2_ENABLE;
 
-    // Pintamos la pantalla de un color (azul en este caso)
-    for (int i = 0; i < SCREEN_W * SCREEN_H; i++) {
-        ((unsigned short*)0x06000000)[i] = 0x001F; // Azul
-    }
-
+    // Bucle principal
     while (1) {
-        // Bucle infinito para mantener la pantalla pintada
+        // Leer estado de teclas
+        unsigned short teclas = *(volatile unsigned short*)0x04000130;
+
+        // Revisar si se presiona la tecla A
+        if (teclas & KEY_A) {
+            // Acción al presionar la tecla A
+        }
+
+        // Esperar a que se actualice la pantalla
+        while (*(volatile unsigned short*)0x04000006 != 160);
     }
 
     return 0;
