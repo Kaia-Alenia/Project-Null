@@ -1,9 +1,9 @@
-CC = gcc
-CFLAGS = -mcpu=arm7tdmi -O2
-LDFLAGS = -mcpu=arm7tdmi -specs=gba.specs
+CC = arm-none-eabi-gcc
+CFLAGS = -mcpu=arm7tdmi -O2 -Wall
+LDFLAGS = -mcpu=arm7tdmi -Wl,--gc-sections
 
-all:
-	$(CC) $(CFLAGS) -c src/main.c -o src/main.o
-	$(CC) $(LDFLAGS) src/main.o -o output.gba
-clean:
-	rm src/main.o output.gba
+main.o: src/main.c
+    $(CC) $(CFLAGS) -c src/main.c -o main.o
+
+main: main.o
+    $(CC) $(LDFLAGS) main.o -o main
