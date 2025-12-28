@@ -1,59 +1,75 @@
 #include <stdint.h>
 
-// Definiciones de constantes
-#define MODE_3 0x0003
-#define BG2_ENABLE 0x0400
-#define SCREEN_W 240
-#define SCREEN_H 160
+// --- DEFINICIONES DE HARDWARE (Eficientes) ---
+#define REG_DISPCNT  (*(volatile uint16_t*)0x04000000)
+#define VRAM         ((volatile uint16_t*)0x06000000)
+#define REG_KEYINPUT (*(volatile uint16_t*)0x04000130)
 
-#define KEY_A 0x0001
-#define KEY_B 0x0002
-#define KEY_RIGHT 0x0010
-#define KEY_LEFT 0x0020
-#define KEY_UP 0x0040
-#define KEY_DOWN 0x0080
+#define MODE_3       0x0003
+#define BG2_ENABLE   0x0400
 
-// Punteros a registros
-volatile uint16_t* REG_DISPCNT = (volatile uint16_t*)0x04000000;
-volatile uint16_t* REG_VCOUNT = (volatile uint16_t*)0x04000006;
-volatile uint16_t* REG_KEYINPUT = (volatile uint16_t*)0x04000130;
+// Colores
+#define NEGRO   0x0000
+#define BLANCO  0x7FFF
+#define ROJO    0x001F
+#define VERDE   0x03E0
+#define AZUL    0x7C00
 
-// Puntero a VRAM
-volatile uint16_t* VRAM = (volatile uint16_t*)0x06000000;
+// Teclas (0 = presionado)
+#define KEY_A      0x0001
+#define KEY_B      0x0002
+#define KEY_RIGHT  0x0010
+#define KEY_LEFT   0x0020
+#define KEY_UP     0x0040
+#define KEY_DOWN   0x0080
+
+// Función para retardo (para que no vaya demasiado rápido)
+void delay(volatile int n) {
+    while(n--) __asm__("nop");
+}
 
 int main() {
-    // Configuración inicial
-    *REG_DISPCNT = MODE_3 | BG2_ENABLE;
+    // 1. Configurar pantalla
+    REG_DISPCNT = MODE_3 | BG2_ENABLE;
+
+    // 2. Coordenadas del jugador
+    int x = 120;
+    int y = 80;
+    uint16_t color_jugador = AZUL;
 
     while (1) {
-        // Bucle principal
-        if (*REG_VCOUNT == 160) {
-            // Actualización de pantalla
-            for (int i = 0; i < SCREEN_W * SCREEN_H; i++) {
-                VRAM[i] = 0x7FFF; // Color blanco
+        // --- LEER CONTROLES ---
+        // Recordatorio: En GBA, presionado es 0 (falso), por eso usamos "!"
+        if (!(REG_KEYINPUT & KEY_RIGHT)) x++;
+        if (!(REG_KEYINPUT & KEY_LEFT))  x--;
+        if (!(REG_KEYINPUT & KEY_UP))    y--;
+        if (!(REG_KEYINPUT & KEY_DOWN))  y++;
+        
+        if (!(REG_KEYINPUT & KEY_A)) color_jugador = ROJO;
+        if (!(REG_KEYINPUT & KEY_B)) color_jugador = VERDE;
+
+        // Limites de pantalla (para que no se salga y crashee)
+        if(x < 0) x = 0;
+        if(x > 230) x = 230;
+        if(y < 0) y = 0;
+        if(y > 150) y = 150;
+
+        // --- DIBUJAR ---
+        // 1. Borrar pantalla (Pintar todo negro)
+        // Nota: Esto es "fuerza bruta", parpadeará un poco, pero funciona para aprender.
+        for (int i = 0; i < 240 * 160; i++) {
+            VRAM[i] = NEGRO;
+        }
+
+        // 2. Pintar al jugador (cuadrado de 10x10)
+        for(int h=0; h<10; h++){
+            for(int w=0; w<10; w++){
+                VRAM[(y+h)*240 + (x+w)] = color_jugador;
             }
         }
 
-        // Lectura de teclas
-        uint16_t keys = *REG_KEYINPUT;
-        if (keys & KEY_A) {
-            // Acción al presionar A
-        }
-        if (keys & KEY_B) {
-            // Acción al presionar B
-        }
-        if (keys & KEY_RIGHT) {
-            // Acción al presionar derecha
-        }
-        if (keys & KEY_LEFT) {
-            // Acción al presionar izquierda
-        }
-        if (keys & KEY_UP) {
-            // Acción al presionar arriba
-        }
-        if (keys & KEY_DOWN) {
-            // Acción al presionar abajo
-        }
+        // 3. Esperar un poco
+        delay(5000);
     }
 
     return 0;
