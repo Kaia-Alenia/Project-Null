@@ -1,11 +1,12 @@
-CC = gcc
-CFLAGS = -Wall -Werror
-TARGET = main
+CC = arm-none-eabi-gcc
+CFLAGS = -Wall -Wextra -O2 -mcpu=arm7tdmi -mthumb-interwork
+LDFLAGS = -mcpu=arm7tdmi -mthumb-interwork
 
-all: $(TARGET)
+main.elf: main.o
+	$(CC) $(LDFLAGS) -o $@ $^
 
-$(TARGET): src/main.c
-	$(CC) $(CFLAGS) -o $@ $^
+main.o: src/main.c
+	$(CC) $(CFLAGS) -c -o $@ $^
 
 clean:
-	rm -f $(TARGET)
+	rm -f main.elf main.o
