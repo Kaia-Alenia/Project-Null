@@ -29,6 +29,6 @@ jobs:
           ERROR_CONTENT=$(cat error_log.txt | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')
           
           # REEMPLAZA LA URL CON TU URL DE RENDER (ej. https://lia-bot.onrender.com)
-          curl -X POST https://TU-APP-EN-RENDER.onrender.com \
+          curl -X POST https://lia-project-manager.onrender.com/
           -H "Content-Type: text/plain" \
           -d "$ERROR_CONTENT"
