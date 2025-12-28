@@ -1,12 +1,12 @@
-CC = arm-none-eabi-gcc
-CFLAGS = -Wall -Wextra -O2 -mcpu=arm7tdmi -mthumb-interwork
-LDFLAGS = -mcpu=arm7tdmi -mthumb-interwork
+CC = gcc
+CFLAGS = -Wall -O2
+LDFLAGS = 
+TARGET = proyecto_gba.gba
 
-main.elf: main.o
-	$(CC) $(LDFLAGS) -o $@ $^
+all: $(TARGET)
 
-main.o: src/main.c
-	$(CC) $(CFLAGS) -c -o $@ $^
+$(TARGET): src/main.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
-	rm -f main.elf main.o
+	rm -f $(TARGET)
