@@ -1,15 +1,11 @@
 CC = gcc
-CFLAGS = -Wall -O2
-LDFLAGS = -mthumb-interwork -Wl,--map
-TARGET = proyecto_gba.gba
+CFLAGS = -Wall -Werror
+TARGET = main
 
 all: $(TARGET)
 
-$(TARGET): src/main.o
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-
-src/main.o: src/main.c include/kaia_gba.h
-	$(CC) $(CFLAGS) -c $< -o $@
+$(TARGET): src/main.c
+	$(CC) $(CFLAGS) -Iinclude src/main.c -o $(TARGET)
 
 clean:
-	rm -f *.o $(TARGET)
+	rm -f $(TARGET)
