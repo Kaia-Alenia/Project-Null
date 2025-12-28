@@ -31,21 +31,12 @@ jobs:
         continue-on-error: true # No detenerse si falla, para poder reportar
 
       # 3. SI FALLA: Enviar reporte a Lia (Render)
-      - name: Report Error to Lia
+     - name: Report Error to Lia
         if: steps.make.outcome == 'failure'
         run: |
           echo "❌ COMPILATION FAILED"
-          
-          # Leemos el log de error
           ERROR_CONTENT=$(cat error_log.txt)
-          
-          # Enviamos el error a tu servidor (CAMBIA LA URL)
-          # Usamos jq para escapar el JSON si es posible, o raw text
-          curl -X POST https://lia-project-manager.onrender.com/
-          -H "Content-Type: text/plain" \
-          -d "$ERROR_CONTENT"
-          
-          # Hacemos que el action marque rojo en GitHub
+          curl -X POST "https://lia-project-manager.onrender.com/" -H "Content-Type: text/plain" -d "$ERROR_CONTENT"
           exit 1
 
       # 4. SI FUNCIONA: Guardar el .gba para que lo descargues
