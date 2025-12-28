@@ -12,34 +12,41 @@ jobs:
   build:
     name: Compilar GBA ROM
     runs-on: ubuntu-latest
+    # Usamos la imagen oficial de desarrollo para GBA
     container: devkitpro/devkitarm
     
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
 
-      # 1. Intentamos compilar guardando el error
+      # --- 🛠️ EL FIX QUE FALTABA ---
+      # Esto le dice al sistema dónde está escondido el compilador
+      - name: Fix PATH (Encontrar herramientas GBA)
+        run: |
+          echo "/opt/devkitpro/devkitARM/bin" >> $GITHUB_PATH
+          echo "/opt/devkitpro/tools/bin" >> $GITHUB_PATH
+
+      # Diagnóstico rápido para confirmar que ahora sí lo ve
+      - name: Verificar Compilador
+        run: arm-none-eabi-gcc --version
+
       - name: Run Make
         id: make
         run: |
           make clean || true
-          # El > stdout.txt guarda lo normal, el 2> error_log.txt guarda los errores
           make > stdout.txt 2> error_log.txt
         continue-on-error: true
 
-      # 2. ¡AQUÍ ESTÁ LA CLAVE! Mostramos el error al humano
+      # Si falla, mostramos el error
       - name: 🔴 MOSTRAR ERROR EN PANTALLA
         if: steps.make.outcome == 'failure'
         run: |
-          echo "============================================"
-          echo "       CONTENIDO DEL ARCHIVO DE ERROR       "
-          echo "============================================"
+          echo "=== ERROR LOG ==="
           cat error_log.txt
-          echo "============================================"
-          echo "TAMBIÉN LA SALIDA ESTÁNDAR:"
+          echo "=== STDOUT ==="
           cat stdout.txt
 
-      # 3. Reportamos a Lia (como siempre)
+      # Reporte a Lia
       - name: Report Error to Lia
         if: steps.make.outcome == 'failure'
         run: |
@@ -48,6 +55,7 @@ jobs:
           --data-binary "@error_log.txt"
           exit 1
 
+      # Subir el juego si todo sale bien
       - name: Upload GBA ROM
         if: steps.make.outcome == 'success'
         uses: actions/upload-artifact@v4
