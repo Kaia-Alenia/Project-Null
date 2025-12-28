@@ -18,27 +18,31 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v3
 
-      # --- PASO DE DIAGNÓSTICO NUEVO ---
-      - name: 🔍 DIAGNOSTICO (X-RAY)
-        run: |
-          echo "=== DÓNDE ESTOY ==="
-          pwd
-          echo "=== LISTADO COMPLETO DE ARCHIVOS ==="
-          find . -maxdepth 3 -not -path '*/.*'
-          echo "=== DETALLE DE SRC ==="
-          ls -la src/ || echo "❌ LA CARPETA SRC NO EXISTE"
-
+      # 1. Intentamos compilar guardando el error
       - name: Run Make
         id: make
         run: |
           make clean || true
-          make 2> error_log.txt
+          # El > stdout.txt guarda lo normal, el 2> error_log.txt guarda los errores
+          make > stdout.txt 2> error_log.txt
         continue-on-error: true
 
+      # 2. ¡AQUÍ ESTÁ LA CLAVE! Mostramos el error al humano
+      - name: 🔴 MOSTRAR ERROR EN PANTALLA
+        if: steps.make.outcome == 'failure'
+        run: |
+          echo "============================================"
+          echo "       CONTENIDO DEL ARCHIVO DE ERROR       "
+          echo "============================================"
+          cat error_log.txt
+          echo "============================================"
+          echo "TAMBIÉN LA SALIDA ESTÁNDAR:"
+          cat stdout.txt
+
+      # 3. Reportamos a Lia (como siempre)
       - name: Report Error to Lia
         if: steps.make.outcome == 'failure'
         run: |
-          echo "❌ COMPILATION FAILED"
           curl -X POST "https://lia-project-manager.onrender.com/" \
           -H "Content-Type: text/plain" \
           --data-binary "@error_log.txt"
