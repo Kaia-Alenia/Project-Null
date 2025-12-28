@@ -1,9 +1,14 @@
 CC = arm-none-eabi-gcc
-CFLAGS = -Wall -Werror
-LDFLAGS = 
+CFLAGS = -Wall -Wextra -O2
+LDFLAGS = -nostartfiles -Wl,--gc-sections
 
-src/main.o: src/main.c
-	$(CC) $(CFLAGS) -c src/main.c -o src/main.o
+all: main.gba
+
+main.gba: src/main.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+src/main.o: src/main.c include/kaia_gba.h
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f src/main.o
+	rm -f src/main.o main.gba
