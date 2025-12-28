@@ -1,12 +1,15 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -O2 -march=armv4t -mtune=arm7tdmi
-LDFLAGS = -nostartfiles
+CFLAGS = -Wall -O2
+LDFLAGS = -mthumb-interwork -Wl,--map
+TARGET = proyecto_gba.gba
 
-all: main.o
-	$(CC) $(LDFLAGS) -o main.elf main.o
+all: $(TARGET)
 
-main.o: src/main.c include/kaia_gba.h
-	$(CC) $(CFLAGS) -c src/main.c -o main.o
+$(TARGET): src/main.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+src/main.o: src/main.c include/kaia_gba.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f main.o main.elf
+	rm -f *.o $(TARGET)
