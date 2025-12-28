@@ -1,14 +1,14 @@
 CC = arm-none-eabi-gcc
 CFLAGS = -Wall -Werror -O2
-LDFLAGS = -nostartfiles
+LDFLAGS = -nostartfiles -Wl,--gc-sections
 
-all: main.elf
+all: main.gba
 
-main.o: src/main.c
-	$(CC) $(CFLAGS) -c src/main.c -o main.o
+main.gba: src/main.o
+	$(CC) $(LDFLAGS) -o $@ $^
 
-main.elf: main.o
-	$(CC) $(LDFLAGS) main.o -o main.elf
+src/main.o: src/main.c
+	$(CC) $(CFLAGS) -c -o $@ $^
 
 clean:
-	rm -f main.o main.elf
+	rm -f src/main.o main.gba
