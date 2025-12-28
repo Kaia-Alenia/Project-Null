@@ -11,4 +11,4 @@ src/main.o: src/main.c include/kaia_gba.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f src/main.o main.gba
+	rm -f src/*.o main.gba
