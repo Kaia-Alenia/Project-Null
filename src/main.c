@@ -1,33 +1,30 @@
 #include "kaia_gba.h"
-// Definiciones de Hardware (Directas para evitar errores de headers faltantes)
+// main.c - Prueba de fuego para GBA
 typedef unsigned short u16;
+
+// Registros de memoria de la GBA
 #define REG_DISPCNT  (*(volatile u16*)0x04000000)
 #define VRAM         ((volatile u16*)0x06000000)
+
+// Configuración de video (Modo 3 = Bitmap de colores)
 #define MODE_3       0x0003
 #define BG2_ENABLE   0x0400
 
-// Definición de Colores (Formato BGR 5-5-5)
+// Color Rojo puro (5 bits por canal: 00000 00000 11111)
 #define COLOR_RED    0x001F
-#define COLOR_BLUE   0x7C00
-#define COLOR_GREEN  0x03E0
-#define COLOR_BLACK  0x0000
 
 int main() {
-    // 1. Configurar pantalla en MODO 3 (Bitmap)
+    // 1. Encendemos la pantalla
     REG_DISPCNT = MODE_3 | BG2_ENABLE;
 
-    // 2. Puntero a la memoria de video
-    u16* video_memory = (u16*)VRAM;
-
-    // 3. Pintar píxel por píxel (240 ancho x 160 alto)
+    // 2. Llenamos la memoria de video con color rojo
+    // La pantalla tiene 240x160 píxeles = 38,400 píxeles
     for (int i = 0; i < 240 * 160; i++) {
-        video_memory[i] = COLOR_RED; 
+        VRAM[i] = COLOR_RED;
     }
 
-    // 4. Bucle infinito para mantener el programa vivo
-    while (1) {
-        // La GBA se queda aquí encendida mostrando el rojo
-    }
+    // 3. Bucle infinito para que no se apague
+    while (1) {}
 
     return 0;
 }
