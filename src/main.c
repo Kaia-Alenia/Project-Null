@@ -51,7 +51,7 @@ int main() {
     REG_DISPCNT = MODE_3 | BG2_ENABLE;
 
     // Posición inicial del jugador
-    int player_x = 120;
+    int player_x = 120
     int player_y = 80;
 
     while (1) {
