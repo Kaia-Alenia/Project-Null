@@ -1,16 +1,23 @@
-# Define la compilador
-CC = gcc
+# Makefile Maestro para GBA
+CROSS   := arm-none-eabi-
+CC      := $(CROSS)gcc
+OBJCOPY := $(CROSS)objcopy
 
-# Define las banderas de compilación
-CFLAGS = -Wall -Werror
+ARCH    := -mthumb-interwork -mthumb
+SPECS   := -specs=gba.specs
 
-# Define el objetivo
-all: main
+CFLAGS  := $(ARCH) -O2 -Wall -fno-strict-aliasing -Iinclude
+LDFLAGS := $(ARCH) $(SPECS)
 
-# Regla para compilar el archivo main.c
-main: src/main.c
-	$(CC) $(CFLAGS) -o main src/main.c
+.PHONY: all clean
 
-# Regla para limpiar los archivos objeto
+all: game.gba
+
+game.gba: game.elf
+	$(OBJCOPY) -O binary $< $@
+
+game.elf: src/main.c
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+
 clean:
-	rm -f main
+	rm -f *.elf *.gba
