@@ -1,6 +1,2 @@
-#include "kaia_gba.h"
-
-int main() {
-	// Código del programa
-	return 0;
-}
+#include "../include/kaia_gba.h"
+// ... resto del código
