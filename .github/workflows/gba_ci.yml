@@ -12,32 +12,32 @@ jobs:
   build:
     name: Compilar GBA ROM
     runs-on: ubuntu-latest
-    # Usamos la imagen oficial de desarrollo para GBA
     container: devkitpro/devkitarm
     
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
 
-      # --- 🛠️ EL FIX QUE FALTABA ---
-      # Esto le dice al sistema dónde está escondido el compilador
+      # 1. Configurar Herramientas
       - name: Fix PATH (Encontrar herramientas GBA)
         run: |
           echo "/opt/devkitpro/devkitARM/bin" >> $GITHUB_PATH
           echo "/opt/devkitpro/tools/bin" >> $GITHUB_PATH
 
-      # Diagnóstico rápido para confirmar que ahora sí lo ve
+      # 2. Diagnóstico rápido
       - name: Verificar Compilador
         run: arm-none-eabi-gcc --version
 
+      # 3. Compilar (Guardando logs para que Lia los lea si falla)
       - name: Run Make
         id: make
         run: |
           make clean || true
+          # Guardamos salida normal en stdout.txt y errores en error_log.txt
           make > stdout.txt 2> error_log.txt
         continue-on-error: true
 
-      # Si falla, mostramos el error
+      # 4. Si falló, mostrar error en la consola de GitHub
       - name: 🔴 MOSTRAR ERROR EN PANTALLA
         if: steps.make.outcome == 'failure'
         run: |
@@ -46,23 +46,27 @@ jobs:
           echo "=== STDOUT ==="
           cat stdout.txt
 
-      # Reporte a Lia
+      # 5. Si falló, avisar a Lia (Render)
       - name: Report Error to Lia
         if: steps.make.outcome == 'failure'
         run: |
+          # Usamos tu URL real aquí
           curl -X POST "https://lia-project-manager.onrender.com/" \
           -H "Content-Type: text/plain" \
           --data-binary "@error_log.txt"
+          # Forzamos fallo de GitHub para ver la X roja
           exit 1
-      # --- AVISAR ÉXITO A LIA ---
+
+      # 6. Si tuvo éxito, avisar a Lia (Render)
       - name: Tell Lia Success
         if: steps.make.outcome == 'success'
         run: |
-          curl -X POST "https://TU-URL-DE-RENDER.onrender.com" \
+          # Enviamos mensaje de texto plano
+          curl -X POST "https://lia-project-manager.onrender.com/" \
           -H "Content-Type: text/plain" \
-          -d "✅ ¡ÉXITO MAESTRO! La compilación GBA terminó perfecta. Ya puedes descargar la ROM."
+          -d "✅ EXITO: La ROM se compiló correctamente."
 
-      # Subir el juego si todo sale bien
+      # 7. Subir el archivo .gba
       - name: Upload GBA ROM
         if: steps.make.outcome == 'success'
         uses: actions/upload-artifact@v4
