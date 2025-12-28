@@ -1,4 +1,9 @@
+CC = gcc
+CFLAGS = -mcpu=arm7tdmi -O2
+LDFLAGS = -mcpu=arm7tdmi -specs=gba.specs
+
 all:
-	gcc -o output src/main.c
+	$(CC) $(CFLAGS) -c src/main.c -o src/main.o
+	$(CC) $(LDFLAGS) src/main.o -o output.gba
 clean:
-	rm output
+	rm src/main.o output.gba
