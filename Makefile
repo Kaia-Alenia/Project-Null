@@ -5,7 +5,7 @@ TARGET = main
 all: $(TARGET)
 
 $(TARGET): src/main.c
-	$(CC) $(CFLAGS) -Iinclude src/main.c -o $(TARGET)
+	$(CC) $(CFLAGS) -o $@ $^
 
 clean:
 	rm -f $(TARGET)
