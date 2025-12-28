@@ -1,3 +1,0 @@
-#include "../include/kaia_gba.h"
-
-// Resto del código...
