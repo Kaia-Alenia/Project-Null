@@ -37,8 +37,6 @@ jobs:
           make > stdout.txt 2> error_log.txt
         continue-on-error: true
 
-     # ... (después del paso Run Make) ...
-
       - name: 🕵️ Lía Visual Check (Smoke Test)
         if: steps.make.outcome == 'success'
         id: visual_check
@@ -81,6 +79,7 @@ jobs:
           curl -X POST "https://lia-project-manager.onrender.com/" \
           -H "Content-Type: text/plain" \
           -d "⚠️ ALERTA VISUAL: El código compila, pero la ROM parece defectuosa (Pantalla Blanca Potencial)."
+          
       # 4. Si falló, mostrar error en la consola de GitHub
       - name: 🔴 MOSTRAR ERROR EN PANTALLA
         if: steps.make.outcome == 'failure'
