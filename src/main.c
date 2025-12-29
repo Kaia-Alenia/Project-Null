@@ -2,7 +2,7 @@ typedef unsigned short u16;
 #define REG_DISPCNT  (*(volatile u16*)0x04000000)
 #define VRAM         ((volatile u16*)0x06000000)
 #define REG_KEYINPUT (*(volatile u16*)0x04000130)
-#define MODE_3       0x0003
+#define MODE_0       0x0000
 #define BG2_ENABLE   0x0400
 #define KEY_A        0x0001
 #define KEY_B        0x0002
@@ -24,8 +24,8 @@ typedef struct {
 } Character;
 
 int main() {
-    // 1. Configurar pantalla en MODO 3 (Bitmap)
-    REG_DISPCNT = MODE_3 | BG2_ENABLE;
+    // 1. Configurar pantalla en MODO 0 (Tilemap)
+    REG_DISPCNT = MODE_0 | BG2_ENABLE;
 
     // 2. Puntero a la memoria de video
     u16* video_memory = (u16*)VRAM;
