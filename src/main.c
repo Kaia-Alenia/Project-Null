@@ -1,48 +1,88 @@
-#include <stdint.h>
+#include "sprite_0705.h"
 
-// Definiciones de registros y constantes
-#define REG_DISPCNT (*(volatile uint16_t*)0x04000000)
-#define REG_VCOUNT (*(volatile uint16_t*)0x04000006)
-#define REG_KEYINPUT (*(volatile uint16_t*)0x04000130)
-#define MODE_3 0x0003
-#define BG2_ENABLE 0x0400
+// Definimos las constantes para la pantalla
 #define SCREEN_W 240
 #define SCREEN_H 160
-#define KEY_A 0x0001
-#define KEY_B 0x0002
-#define KEY_RIGHT 0x0010
-#define KEY_LEFT 0x0020
-#define KEY_UP 0x0040
-#define KEY_DOWN 0x0080
 
-// Función principal
+// Definimos las constantes para el robot
+#define ROBOT_W 16
+#define ROBOT_H 16
+
+// Definimos la estructura para el robot
+typedef struct {
+    int x;
+    int y;
+    int velocidad;
+} Robot;
+
+// Creamos un robot
+Robot robot;
+
+// Inicializamos el robot
+void initRobot() {
+    robot.x = SCREEN_W / 2;
+    robot.y = SCREEN_H / 2;
+    robot.velocidad = 2;
+}
+
+// Dibujamos el robot en la pantalla
+void drawRobot() {
+    // Dibujamos el robot en la pantalla
+    for (int i = 0; i < ROBOT_H; i++) {
+        for (int j = 0; j < ROBOT_W; j++) {
+            // Dibujamos un píxel en la pantalla
+            *(volatile unsigned short*)(0x06000000 + (robot.y + i) * SCREEN_W + robot.x + j) = 0x000F;
+        }
+    }
+}
+
+// Movemos el robot
+void moveRobot(int direccion) {
+    switch (direccion) {
+        case 0: // Arriba
+            robot.y -= robot.velocidad;
+            break;
+        case 1: // Abajo
+            robot.y += robot.velocidad;
+            break;
+        case 2: // Izquierda
+            robot.x -= robot.velocidad;
+            break;
+        case 3: // Derecha
+            robot.x += robot.velocidad;
+            break;
+    }
+}
+
+// Main loop
 int main() {
-    // Configuración inicial de la pantalla
-    REG_DISPCNT = MODE_3 | BG2_ENABLE;
+    // Inicializamos el robot
+    initRobot();
 
-    // Bucle principal
+    // Configuramos la pantalla
+    *(volatile unsigned short*)0x04000000 = MODE_3 | BG2_ENABLE;
+
     while (1) {
-        // Espera a que la pantalla esté lista para renderizar
-        while (REG_VCOUNT >= SCREEN_H);
+        // Dibujamos el robot en la pantalla
+        drawRobot();
 
-        // Lee la entrada del usuario
-        uint16_t keys = REG_KEYINPUT;
+        // Movemos el robot según la entrada del usuario
+        int entrada = *(volatile unsigned short*)0x04000130;
+        if (entrada & KEY_UP) {
+            moveRobot(0);
+        } else if (entrada & KEY_DOWN) {
+            moveRobot(1);
+        } else if (entrada & KEY_LEFT) {
+            moveRobot(2);
+        } else if (entrada & KEY_RIGHT) {
+            moveRobot(3);
+        }
 
-        // Responde a la entrada del usuario
-        if (keys & KEY_A) {
-            // Acción cuando se presiona el botón A
-        } else if (keys & KEY_B) {
-            // Acción cuando se presiona el botón B
-        } else if (keys & KEY_RIGHT) {
-            // Acción cuando se presiona la flecha derecha
-        } else if (keys & KEY_LEFT) {
-            // Acción cuando se presiona la flecha izquierda
-        } else if (keys & KEY_UP) {
-            // Acción cuando se presiona la flecha arriba
-        } else if (keys & KEY_DOWN) {
-            // Acción cuando se presiona la flecha abajo
+        // Esperamos un poco para no consumir demasiada CPU
+        for (int i = 0; i < 1000; i++) {
+            // Nada
         }
     }
 
-    retur 0;
-?
+    return 0;
+}
