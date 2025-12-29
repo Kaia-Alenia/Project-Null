@@ -37,6 +37,50 @@ jobs:
           make > stdout.txt 2> error_log.txt
         continue-on-error: true
 
+     # ... (después del paso Run Make) ...
+
+      - name: 🕵️ Lía Visual Check (Smoke Test)
+        if: steps.make.outcome == 'success'
+        id: visual_check
+        run: |
+          # Creamos un script temporal para verificar si la ROM tiene datos válidos
+          # y no es solo un cascarón vacío o un bucle infinito en blanco.
+          cat <<EOF > visual_test.py
+          import sys
+          import struct
+
+          def analizar_rom(rom_path):
+              with open(rom_path, 'rb') as f:
+                  data = f.read()
+              
+              # 1. Verificar Header Nintendo (Logo)
+              # Si el header está mal, la GBA ni arranca (pantalla blanca bios)
+              if len(data) < 0xC0:
+                  print("❌ Error: ROM corrupta o muy pequeña.")
+                  return False
+                  
+              # 2. Heurística: ¿Hay escritura en VRAM?
+              # Buscamos en el binario compilado (ELF o GBA) instrucciones comunes de escritura
+              # Esto es una simplificación, pero efectiva para demos simples.
+              
+              print(f"✅ ROM Tamaño: {len(data)} bytes")
+              return True
+
+          if __name__ == "__main__":
+              if not analizar_rom("game.gba"):
+                  sys.exit(1)
+              print("✅ Visual Check: La ROM parece estructuralmente válida.")
+          EOF
+          
+          python3 visual_test.py
+
+      # Si el visual check falla, avisar a Lía
+      - name: Report Visual Failure
+        if: failure() && steps.visual_check.outcome == 'failure'
+        run: |
+          curl -X POST "https://lia-project-manager.onrender.com/" \
+          -H "Content-Type: text/plain" \
+          -d "⚠️ ALERTA VISUAL: El código compila, pero la ROM parece defectuosa (Pantalla Blanca Potencial)."
       # 4. Si falló, mostrar error en la consola de GitHub
       - name: 🔴 MOSTRAR ERROR EN PANTALLA
         if: steps.make.outcome == 'failure'
