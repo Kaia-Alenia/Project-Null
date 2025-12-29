@@ -31,8 +31,8 @@ int main() {
     u16* video_memory = (u16*)VRAM;
 
     // 3. Inicializar personajes
-    Character player_red = {100, 100, COLOR_RED};
-    Character player_blue = {200, 100, COLOR_BLUE};
+    Character player = {100, 100, COLOR_BLUE};
+    Character enemy = {200, 100, COLOR_RED};
 
     // 4. Pintar fondo negro
     for (int i = 0; i < SCREEN_W * SCREEN_H; i++) {
@@ -42,36 +42,36 @@ int main() {
     // 5. Dibujar personajes
     for (int y = 0; y < 10; y++) {
         for (int x = 0; x < 10; x++) {
-            video_memory[(player_red.y + y) * SCREEN_W + player_red.x + x] = player_red.color;
-            video_memory[(player_blue.y + y) * SCREEN_W + player_blue.x + x] = player_blue.color;
+            video_memory[(player.y + y) * SCREEN_W + player.x + x] = player.color;
+            video_memory[(enemy.y + y) * SCREEN_W + enemy.x + x] = enemy.color;
         }
     }
 
-    int direction = 1; // Dirección del movimiento automático del enemigo rojo
+    int enemy_direction = 1; // Dirección del movimiento automático del enemigo
 
     // 6. Bucle infinito para mantener el programa vivo
     while (1) {
-        // Leer entrada del usuario para el jugador azul
+        // Leer entrada del usuario para el jugador
         u16 keys = REG_KEYINPUT;
 
-        // Mover jugador azul
+        // Mover jugador
         if (keys & KEY_RIGHT) {
-            player_blue.x -= 1; // Corregir el movimiento
+            player.x += 1;
         }
         if (keys & KEY_LEFT) {
-            player_blue.x += 1; // Corregir el movimiento
+            player.x -= 1;
         }
         if (keys & KEY_UP) {
-            player_blue.y += 1; // Corregir el movimiento
+            player.y -= 1;
         }
         if (keys & KEY_DOWN) {
-            player_blue.y -= 1; // Corregir el movimiento
+            player.y += 1;
         }
 
-        // Mover enemigo rojo de manera automática
-        player_red.x += direction;
-        if (player_red.x > SCREEN_W - 10 || player_red.x < 0) {
-            direction *= -1; // Cambiar la dirección si se sale de la pantalla
+        // Mover enemigo de manera automática
+        enemy.x += enemy_direction;
+        if (enemy.x > SCREEN_W - 10 || enemy.x < 0) {
+            enemy_direction *= -1; // Cambiar la dirección si se sale de la pantalla
         }
 
         // Limpiar pantalla
@@ -82,11 +82,11 @@ int main() {
         // Dibujar personajes en sus nuevas posiciones
         for (int y = 0; y < 10; y++) {
             for (int x = 0; x < 10; x++) {
-                if (player_red.x + x >= 0 && player_red.x + x < SCREEN_W && player_red.y + y >= 0 && player_red.y + y < SCREEN_H) {
-                    video_memory[(player_red.y + y) * SCREEN_W + player_red.x + x] = player_red.color;
+                if (player.x + x >= 0 && player.x + x < SCREEN_W && player.y + y >= 0 && player.y + y < SCREEN_H) {
+                    video_memory[(player.y + y) * SCREEN_W + player.x + x] = player.color;
                 }
-                if (player_blue.x + x >= 0 && player_blue.x + x < SCREEN_W && player_blue.y + y >= 0 && player_blue.y + y < SCREEN_H) {
-                    video_memory[(player_blue.y + y) * SCREEN_W + player_blue.x + x] = player_blue.color;
+                if (enemy.x + x >= 0 && enemy.x + x < SCREEN_W && enemy.y + y >= 0 && enemy.y + y < SCREEN_H) {
+                    video_memory[(enemy.y + y) * SCREEN_W + enemy.x + x] = enemy.color;
                 }
             }
         }
