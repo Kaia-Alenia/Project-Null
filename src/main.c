@@ -1,34 +1,23 @@
 #include <stdint.h>
 
-// Definiciones de Hardware (Directas para evitar errores de headers faltantes)
-typedef unsigned short u16;
-#define REG_DISPCNT  (*(volatile u16*)0x04000000)
-#define VRAM         ((volatile u16*)0x06000000)
-#define MODE_3       0x0003
-#define BG2_ENABLE   0x0400
-
-// Definición de Colores (Formato BGR 5-5-5)
-#define COLOR_RED    0x001F
-#define COLOR_BLUE   0x7C00
-#define COLOR_GREEN  0x03E0
-#define COLOR_BLACK  0x0000
-
 int main() {
-    // 1. Configurar pantalla en MODO 3 (Bitmap)
-    REG_DISPCNT = MODE_3 | BG2_ENABLE;
+    // Inicialización de la Game Boy Advance
+    *(volatile uint16_t*)0x04000000 = 0x0400 | 0x0003; // Modo 3 y fondo 2 habilitado
 
-    // 2. Puntero a la memoria de video
-    u16* video_memory = (u16*)VRAM;
-
-    // 3. Pintar píxel por píxel (240 ancho x 160 alto)
-    for (int i = 0; i < 240 * 160; i++) {
-        video_memory[i] = COLOR_RED; 
-    }
-
-    // 4. Bucle infinito para mantener el programa vivo
     while (1) {
-        // La GBA se queda aquí encendida mostrando el rojo
+        // Bucle principal del juego
     }
 
-    return 0;
+    // Historia de la Game Boy Advance
+    /*
+    La Game Boy Advance (GBA) es una consola de videojuegos portátil desarrollada y fabricada por Nintendo. Fue lanzada en Japón el 21 de marzo de 2001, y posteriormente en Norteamérica y Europa en junio de 2001.
+
+    La GBA fue la sucesora de la Game Boy Color y ofreció una gran mejora en términos de gráficos y sonido. Tenía una pantalla reflectante de 2,9 pulgadas con una resolución de 240x160 píxeles, y era capaz de mostrar 511 colores simultáneamente. La consola también contaba con un procesador de 32 bits y 256 kilobytes de memoria RAM.
+
+    La GBA tuvo un gran éxito comercial y se convirtió en una de las consolas portátiles más populares de la historia. Se vendieron más de 81 millones de unidades en todo el mundo, y su biblioteca de juegos incluía títulos como Pokémon, Mario Kart, The Legend of Zelda y Super Mario Advance.
+
+    La GBA también fue conocida por su compatibilidad con juegos de la Game Boy y la Game Boy Color, lo que permitió a los jugadores jugar juegos más antiguos en la nueva consola. Además, la GBA tenía una ranura para cartuchos de juegos, lo que facilitaba la carga y el intercambio de juegos.
+
+    En 2003, Nintendo lanzó la Game Boy Advance SP, una versión mejorada de la GBA que incluía una pantalla iluminada y un diseño más compacto. La GBA SP se convirtió en una de las consolas portátiles más populares de la época, y su legado sigue siendo recordado por los jugadores y los desarrolladores de juegos en la actualidad.
+    */
 }
