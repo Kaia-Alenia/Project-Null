@@ -47,6 +47,8 @@ int main() {
         }
     }
 
+    int direction = 1; // Dirección del movimiento automático del enemigo rojo
+
     // 6. Bucle infinito para mantener el programa vivo
     while (1) {
         // Leer entrada del usuario para el jugador azul
@@ -54,16 +56,22 @@ int main() {
 
         // Mover jugador azul
         if (keys & KEY_RIGHT) {
-            player_blue.x += 1;
+            player_blue.x -= 1; // Corregir el movimiento
         }
         if (keys & KEY_LEFT) {
-            player_blue.x -= 1;
+            player_blue.x += 1; // Corregir el movimiento
         }
         if (keys & KEY_UP) {
-            player_blue.y -= 1;
+            player_blue.y += 1; // Corregir el movimiento
         }
         if (keys & KEY_DOWN) {
-            player_blue.y += 1;
+            player_blue.y -= 1; // Corregir el movimiento
+        }
+
+        // Mover enemigo rojo de manera automática
+        player_red.x += direction;
+        if (player_red.x > SCREEN_W - 10 || player_red.x < 0) {
+            direction *= -1; // Cambiar la dirección si se sale de la pantalla
         }
 
         // Limpiar pantalla
